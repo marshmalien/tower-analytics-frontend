@@ -78,20 +78,6 @@ const formatTopFailedTask = data => {
     return `${data[0].task_name} ${percentage}`;
 };
 
-const renderTemplateTitle = ({ name, type }) => {
-    let context;
-    if (type === 'job') {
-        context = 'Playbook Run';
-    }
-
-    return (
-        <>
-            { name }
-            <Badge style={ { marginLeft: '20px' } } isRead>{ context }</Badge>
-        </>
-    );
-};
-
 const TemplatesList = ({ templates }) => {
     const [ isModalOpen, setIsModalOpen ] = useState(false);
     const [ selectedId, setSelectedId ] = useState(null);
@@ -145,7 +131,7 @@ const TemplatesList = ({ templates }) => {
       {selectedTemplate && (
           <Modal
               width={ '80%' }
-              title={ selectedTemplate.name ? renderTemplateTitle(selectedTemplate) : '' }
+              title={ selectedTemplate.name ? selectedTemplate.name : '' }
               isOpen={ isModalOpen }
               onClose={ () => {
                   setIsModalOpen(false);
