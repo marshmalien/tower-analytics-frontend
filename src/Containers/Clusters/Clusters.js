@@ -11,8 +11,8 @@ import {
     readChart30,
     readClusters,
     readModules,
-    readTemplates,
-    readNotifications
+    readTemplates
+    // readNotifications
 } from '../../Api';
 
 import {
@@ -34,8 +34,9 @@ import { FilterIcon } from '@patternfly/react-icons';
 import BarChart from '../../Charts/BarChart';
 import LineChart from '../../Charts/LineChart';
 import ModulesList from '../../Components/ModulesList';
-import NotificationsList from '../../Components/NotificationsList';
+// import NotificationsList from '../../Components/NotificationsList';
 import TemplatesList from '../../Components/TemplatesList';
+import WorkflowsList from '../../Components/WorkflowsList';
 
 const CardHeader = styled(PFCardHeader)`
     border-bottom: 2px solid #ebebeb;
@@ -61,15 +62,15 @@ const timeFrameOptions = [
     { value: 31, label: 'Past Month', disabled: false }
 ];
 
-const notificationOptions = [
-    {
-        value: 'please choose',
-        label: 'Select Notification Type',
-        disabled: true
-    },
-    { value: 'error', label: 'View Critical', disabled: false },
-    { value: 'all', label: 'View All', disabled: false }
-];
+// const notificationOptions = [
+//     {
+//         value: 'please choose',
+//         label: 'Select Notification Type',
+//         disabled: true
+//     },
+//     { value: 'error', label: 'View Critical', disabled: false },
+//     { value: 'all', label: 'View All', disabled: false }
+// ];
 
 function formatClusterName(data) {
     const defaultClusterOptions = [
@@ -92,7 +93,7 @@ function formatClusterName(data) {
 
 const initialQueryParams = {
     startDate: moment.utc()
-    .subtract(7, 'days')
+    .subtract(1, 'month')
     .format('YYYY-MM-DD'),
     endDate: moment.utc().format('YYYY-MM-DD')
 };
@@ -101,13 +102,14 @@ const Clusters = () => {
     const [ preflightError, setPreFlightError ] = useState(null);
     const [ barChartData, setBarChartData ] = useState([]);
     const [ lineChartData, setLineChartData ] = useState([]);
-    const [ notificationsData, setNotificationsData ] = useState([]);
+    // const [ notificationsData, setNotificationsData ] = useState([]);
+    // const [ workflowsData, setWorkflowsData ] = useState([]);
     const [ templatesData, setTemplatesData ] = useState([]);
     const [ modulesData, setModulesData ] = useState([]);
     const [ clusterOptions, setClusterOptions ] = useState([]);
-    const [ clusterTimeFrame, setClusterTimeFrame ] = useState(7);
+    const [ clusterTimeFrame, setClusterTimeFrame ] = useState(31);
     const [ selectedCluster, setSelectedCluster ] = useState('all');
-    const [ selectedNotification, setSelectedNotification ] = useState('all');
+    // const [ selectedNotification, setSelectedNotification ] = useState('all');
     const [ firstRender, setFirstRender ] = useState(true);
     const { queryParams, setEndDate, setStartDate, setId } = useQueryParams(initialQueryParams);
 
@@ -120,8 +122,8 @@ const Clusters = () => {
             return Promise.all([
                 readChart30({ params: queryParams }),
                 readModules({ params: queryParams }),
-                readTemplates({ params: queryParams }),
-                readNotifications({ params: queryParams })
+                readTemplates({ params: queryParams })
+                // readNotifications({ params: queryParams })
             ].map(p => p.catch(() => [])));
         };
 
@@ -130,13 +132,14 @@ const Clusters = () => {
             fetchEndpoints().then(([
                 { data: lineChartData = []},
                 { modules: modulesData = []},
-                { templates: templatesData = []},
-                { notifications: notificationsData = []}
+                { templates: templatesData = []}
+                // { templates: workflowsData = []}
+                // { notifications: notificationsData = []}
             ]) => {
                 setLineChartData(lineChartData);
                 setModulesData(modulesData);
                 setTemplatesData(templatesData);
-                setNotificationsData(notificationsData);
+                // setWorkflowsData(templatesData);
             });
         };
 
@@ -150,8 +153,8 @@ const Clusters = () => {
                 readChart30({ params: queryParams }),
                 readClusters(),
                 readModules({ params: queryParams }),
-                readTemplates({ params: queryParams }),
-                readNotifications({ params: queryParams })
+                readTemplates({ params: queryParams })
+                // readNotifications({ params: queryParams })
             ].map(p => p.catch(() => [])));
         };
 
@@ -164,8 +167,9 @@ const Clusters = () => {
                 { data: barChartData = []},
                 { templates: clustersData = []},
                 { modules: modulesData = []},
-                { templates: templatesData = []},
-                { notifications: notificationsData = []}
+                { templates: templatesData = []}
+                // { templates: workflowsData = []}
+                // { notifications: notificationsData = []}
             ]) => {
                 if (!ignore) {
                     const clusterOptions = formatClusterName(clustersData);
@@ -174,7 +178,7 @@ const Clusters = () => {
                     setClusterOptions(clusterOptions);
                     setModulesData(modulesData);
                     setTemplatesData(templatesData);
-                    setNotificationsData(notificationsData);
+                    // setWorkflowsData(templatesData);
                     setFirstRender(false);
                 }
             });
@@ -279,14 +283,15 @@ const Clusters = () => {
                         className="dataCard"
                         style={ { display: 'flex', marginTop: '20px' } }
                     >
+                        <WorkflowsList templates={ templatesData.slice(0, 10) } />
                         <TemplatesList templates={ templatesData.slice(0, 10) } />
                         <ModulesList modules={ modulesData.slice(0, 10) } />
-                        <NotificationsList
+                        { /* <NotificationsList
                             onNotificationChange={ (value) => setSelectedNotification(value) }
                             filterBy={ selectedNotification }
                             options={ notificationOptions }
                             notifications={ notificationsData }
-                        />
+                        /> */ }
                     </div>
                 </Main>
                 </>
