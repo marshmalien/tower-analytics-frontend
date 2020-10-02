@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-/*eslint camelcase: ["error", {allow: ["setStart_Date","setEnd_Date","cluster_id","org_id","job_type","template_id","quick_date_range","sort_by", "start_date", "end_date", "group_by_time"]}]*/
+/*eslint camelcase: ["error", {allow: ["setStart_Date","setEnd_Date","cluster_id","org_id","job_type","template_id","quick_date_range","sort_by", "start_date", "end_date", "group_by_time", "group_by"]}]*/
 
 import React, { useState, useEffect } from 'react';
 import moment from 'moment';
@@ -11,9 +11,8 @@ import EmptyState from '../../Components/EmptyState';
 import {
     preflightRequest,
     readModules,
-    readTemplates,
-    readClustersBarChart,
-    readJobExplorerOptions
+    readJobExplorerOptions,
+    readJobExplorer
 } from '../../Api';
 
 import { jobExplorer } from '../../Utilities/constants';
@@ -59,9 +58,14 @@ const initialQueryParams = {
     endDate: moment().format('YYYY-MM-DD')
 };
 
-const barChartParams = {
+const jobRunParams = {
     status: [ 'successful', 'failed' ],
     group_by_time: true
+};
+
+const topTemplateParams = {
+    group_by: 'template',
+    limit: 10
 };
 
 const Clusters = ({ history }) => {
@@ -95,9 +99,14 @@ const Clusters = ({ history }) => {
         setEnd_Date
     } = useQueryParams(initialQueryParams);
 
-    const combinedParams = {
+    const combinedJobRunParams = {
         ...queryParams,
-        ...barChartParams
+        ...jobRunParams
+    };
+
+    const combinedTemplatesListParams = {
+        ...queryParams,
+        ...topTemplateParams
     };
 
     const initialOptionsParams = {
@@ -241,7 +250,8 @@ const Clusters = ({ history }) => {
         const fetchEndpoints = () => {
             return Promise.all(
                 [
-                    readClustersBarChart({ params: combinedParams }),
+                    readJobExplorer({ params: combinedJobRunParams }),
+                    readJobExplorer({ params: combinedTemplatesListParams }),
                     readJobExplorerOptions({ params: optionsQueryParams })
                 ].map(p => p.catch(() => []))
             );
@@ -256,6 +266,7 @@ const Clusters = ({ history }) => {
             fetchEndpoints().then(
                 ([
                     { items: jobExplorerData = []},
+                    { items: templatesData = []},
                     {
                         cluster_id,
                         org_id,
@@ -268,6 +279,7 @@ const Clusters = ({ history }) => {
                 ]) => {
                     if (!ignore) {
                         queryParams.cluster_id ? setLineChartData(jobExplorerData) : setBarChartData(jobExplorerData);
+                        setTemplatesData(templatesData);
                         setClusterIds(cluster_id);
                         setOrgIds(org_id);
                         setTemplateIds(template_id);
@@ -293,11 +305,11 @@ const Clusters = ({ history }) => {
         window.insights.chrome.auth.getUser().then(() =>
             Promise.all([
                 readModules({ params: queryParams }),
-                readTemplates({ params: queryParams }),
-                readClustersBarChart({ params: combinedParams })
+                readJobExplorer({ params: combinedTemplatesListParams }),
+                readJobExplorer({ params: combinedJobRunParams })
             ]).then(([
                 { modules: modulesData = []},
-                { templates: templatesData = []},
+                { items: templatesData = []},
                 { items: chartData = []}
             ]) => {
                 queryParams.cluster_id ? setLineChartData(chartData) : setBarChartData(chartData);
@@ -370,7 +382,7 @@ const Clusters = ({ history }) => {
                       history={ history }
                       queryParams={ queryParams }
                       clusterId={ queryParams.cluster_id }
-                      templates={ templatesData.slice(0, 10) }
+                      templates={ templatesData }
                       isLoading={ isLoading }
                   />
                   <ModulesList

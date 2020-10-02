@@ -1,4 +1,4 @@
-/*eslint camelcase: ["error", {allow: ["template_id", "job_type", "cluster_id", "start_date", "end_date", "quick_date_range"]}]*/
+/*eslint camelcase: ["error", {allow: ["template_id", "job_type", "cluster_id", "start_date", "end_date", "quick_date_range", "total_count"]}]*/
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { formatDateTime, formatSeconds, formatPercentage } from '../Utilities/helpers';
@@ -189,7 +189,7 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
                   </PFDataListCell>
               </PFDataListItem>
           ) }
-          { !isLoading && templates.map(({ name, count, id }, index) => (
+          { !isLoading && templates.map(({ name, total_count, id }, index) => (
               <DataListItem aria-labelledby="top-templates-detail" key={ index }>
                   <DataListCell>
                       <a
