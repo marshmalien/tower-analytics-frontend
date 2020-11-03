@@ -15,6 +15,7 @@ import {
 import LoadingState from '../../Components/LoadingState';
 import NoData from '../../Components/NoData';
 import EmptyState from '../../Components/EmptyState';
+import ApiErrorState from '../../Components/ApiErrorState';
 import FilterableToolbar from '../../Components/Toolbar/';
 
 // Imports from API
@@ -90,12 +91,13 @@ const computeTotalSavings = (filteredData, costAutomation, costManual) => {
 const AutomationCalculator = ({ history }) => {
     const toJobExplorer = useRedirect(history, 'jobExplorer');
     const [ isLoading, setIsLoading ] = useState(true);
+    const [ apiError, setApiError ] = useState(null);
+    const [ preflightError, setPreFlightError ] = useState(null);
     const [ costManual, setCostManual ] = useState('50');
     const [ costAutomation, setCostAutomation ] = useState('20');
     const [ totalSavings, setTotalSavings ] = useState(0);
     const [ unfilteredData, setUnfilteredData ] = useState([]);
     const [ quickDateRange, setQuickDateRange ] = useState([]);
-    const [ preflightError, setPreFlightError ] = useState(null);
     const {
         urlMappedQueryParams,
         queryParams,
@@ -126,7 +128,6 @@ const AutomationCalculator = ({ history }) => {
 
     /**
      * Get data from API depending on the queryParam.
-     * TODO API Error handling
      */
     useEffect(() => {
         setIsLoading(true);
@@ -145,6 +146,10 @@ const AutomationCalculator = ({ history }) => {
 
                 setUnfilteredData(mapApi(items));
                 setQuickDateRange(quickDateRange);
+            })
+            .catch(e => {
+                setUnfilteredData([]);
+                setApiError(e.error);
             })
             .finally(() => { setIsLoading(false); });
         });
@@ -198,9 +203,10 @@ const AutomationCalculator = ({ history }) => {
                                 <Card>
                                     <BorderedCardTitle>Automation savings</BorderedCardTitle>
                                     <CardBody>
-                                        { isLoading && !preflightError && <LoadingState /> }
-                                        { !isLoading && unfilteredData.length <= 0 && <NoData /> }
-                                        { unfilteredData.length > 0 && !isLoading && (
+                                        { apiError && <ApiErrorState message={ apiError } /> }
+                                        { !apiError && isLoading && <LoadingState /> }
+                                        { !apiError && !isLoading && unfilteredData.length <= 0 && <NoData /> }
+                                        { !apiError && !isLoading && unfilteredData.length > 0 && (
                                             <React.Fragment>
                                                 <TopTemplatesSavings
                                                     margin={ { top: 20, right: 20, bottom: 20, left: 70 } }
