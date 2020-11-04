@@ -1,8 +1,5 @@
-/* eslint-disable */
-/*eslint camelcase: ["error", {properties: "never"}]*/
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import moment from 'moment';
 
 import { useQueryParams } from '../../Utilities/useQueryParams';
 
@@ -13,7 +10,8 @@ import {
     preflightRequest,
     readJobsByDateAndOrg,
     readJobRunsByOrg,
-    readJobEventsByOrg
+    readJobEventsByOrg,
+    readJobExplorerOptions
 } from '../../Api';
 
 import { Main, PageHeader, PageHeaderTitle } from '@redhat-cloud-services/frontend-components';
@@ -21,15 +19,13 @@ import { Main, PageHeader, PageHeaderTitle } from '@redhat-cloud-services/fronte
 import {
     Card,
     CardBody,
-    CardTitle as PFCardTitle,
-    FormSelect,
-    FormSelectOption
+    CardTitle as PFCardTitle
 } from '@patternfly/react-core';
-
-import { FilterIcon } from '@patternfly/react-icons';
 
 import GroupedBarChart from '../../Charts/GroupedBarChart';
 import PieChart from '../../Charts/PieChart';
+import FilterableToolbar from '../../Components/Toolbar/';
+import { organizationStatistics as constants } from '../../Utilities/constants';
 
 const CardTitle = styled(PFCardTitle)`
   border-bottom: 2px solid #ebebeb;
@@ -66,53 +62,18 @@ const TopCard = styled(Card)`
   min-height: 500px;
 `;
 
-const timeFrameOptions = [
-    { value: 'please choose', label: 'Select Date Range', disabled: true },
-    { value: 7, label: 'Past Week', disabled: false },
-    { value: 14, label: 'Past 2 Weeks', disabled: false },
-    { value: 31, label: 'Past Month', disabled: false }
-];
-
-const sortOptions = [
-    { value: 'please choose', label: 'Order By', disabled: true },
-    { value: 'desc', label: 'Top 5 Orgs', disabled: false },
-    { value: 'asc', label: 'Bottom 5 Orgs', disabled: false },
-    { value: 'all', label: 'All Orgs', disabled: false }
-];
-
-const initialQueryParams = {
-    startDate: moment().subtract(1, 'month').format('YYYY-MM-DD'),
-    endDate: moment().format('YYYY-MM-DD'),
-    sortBy: 'desc',
-    limit: 5
-};
-
 const OrganizationStatistics = () => {
     const [ preflightError, setPreFlightError ] = useState(null);
     const [ pieChart1Data, setPieChart1Data ] = useState([]);
     const [ pieChart2Data, setPieChart2Data ] = useState([]);
     const [ orgsChartData, setorgsChartData ] = useState([]);
-    const [ timeframe, setTimeframe ] = useState(31);
+    const [ quickDateRange, setQuickDateRange ] = useState([]);
     const [ isLoading, setIsLoading ] = useState(true);
     const {
         queryParams,
-        setEndDate,
-        setStartDate,
         setFromToolbar,
-        setLimit,
         urlMappedQueryParams
-    } = useQueryParams(initialQueryParams);
-
-    const setLimitValue = (val) => {
-        let limit;
-        if (val === 'asc' || val === 'desc') {
-            limit = 5;
-        } else {
-            limit = 25;
-        }
-
-        return setLimit(limit);
-    };
+    } = useQueryParams(constants.defaultParams);
 
     useEffect(() => {
         insights.chrome.appNavClick({ id: 'organization-statistics', secondaryNav: true });
@@ -144,18 +105,21 @@ const OrganizationStatistics = () => {
         setIsLoading(true);
         window.insights.chrome.auth.getUser().then(() => Promise.all(
             [
+                readJobExplorerOptions({ params: urlMappedQueryParams }),
                 readJobsByDateAndOrg({ params: urlMappedQueryParams }),
                 readJobRunsByOrg({ params: urlMappedQueryParams }),
                 readJobEventsByOrg({ params: urlMappedQueryParams })
             ].map((p) => p.catch(() => []))
         ).then(
             ([
+                options,
                 { dates: orgsChartData = []},
                 { items: pieChart1Data = []},
                 { items: pieChart2Data = []}
             ]) => {
                 if (didCancel) { return; }
 
+                setQuickDateRange(options.quick_date_range);
                 setorgsChartData(orgsChartMapper(orgsChartData));
                 setPieChart1Data(pieChartMapper(pieChart1Data));
                 setPieChart2Data(pieChartMapper(pieChart2Data));
@@ -179,53 +143,16 @@ const OrganizationStatistics = () => {
         <>
           <Main style={ { paddingBottom: '0' } }>
               <Card>
-                  <CardTitle style={ { paddingBottom: '0', paddingTop: '0' } }>
-                      <h2>
-                          <FilterIcon style={ { marginRight: '10px' } } />
-                          Filter
-                      </h2>
-                      <div style={ { display: 'flex', justifyContent: 'flex-end' } }>
-                          <FormSelect
-                              name="sortOrder"
-                              value={ queryParams.sortBy }
-                              onChange={ (value) => {
-                                  setFromToolbar('sortBy', value);
-                                  setLimitValue(value);
-                              } }
-                              aria-label="Select Cluster"
-                              style={ { margin: '2px 10px' } }
-                          >
-                              { sortOptions.map(({ value, label, disabled }, index) => (
-                                  <FormSelectOption
-                                      isDisabled={ disabled }
-                                      key={ index }
-                                      value={ value }
-                                      label={ label }
-                                  />
-                              )) }
-                          </FormSelect>
-                          <FormSelect
-                              name="timeframe"
-                              value={ timeframe }
-                              onChange={ (value) => {
-                                  setTimeframe(+value);
-                                  setEndDate();
-                                  setStartDate(+value);
-                              } }
-                              aria-label="Select Date Range"
-                              style={ { margin: '2px 10px' } }
-                          >
-                              { timeFrameOptions.map((option, index) => (
-                                  <FormSelectOption
-                                      isDisabled={ option.disabled }
-                                      key={ index }
-                                      value={ option.value }
-                                      label={ option.label }
-                                  />
-                              )) }
-                          </FormSelect>
-                      </div>
-                  </CardTitle>
+                  <CardBody>
+                      <FilterableToolbar
+                          categories={ {
+                              quickDateRange,
+                              sortBy: constants.sortBy
+                          } }
+                          filters={ queryParams }
+                          setFilters={ setFromToolbar }
+                      />
+                  </CardBody>
               </Card>
           </Main>
           <Main>
@@ -241,7 +168,7 @@ const OrganizationStatistics = () => {
                               margin={ { top: 20, right: 20, bottom: 50, left: 50 } }
                               id="d3-grouped-bar-chart-root"
                               data={ orgsChartData }
-                              timeFrame={ timeframe }
+                              timeFrame={ orgsChartData.length }
                           />
                       ) }
                   </CardBody>
@@ -251,7 +178,7 @@ const OrganizationStatistics = () => {
                       <CardBody style={ { padding: 0 } }>
                           <CardTitle style={ { padding: 0 } }>
                               <h2 style={ { marginLeft: '20px' } }>
-                      Job Runs by Organization
+                                  Job Runs by Organization
                               </h2>
                           </CardTitle>
                           { isLoading && <LoadingState /> }
@@ -261,7 +188,7 @@ const OrganizationStatistics = () => {
                                   margin={ { top: 20, right: 20, bottom: 0, left: 20 } }
                                   id="d3-donut-1-chart-root"
                                   data={ pieChart1Data }
-                                  timeFrame={ timeframe }
+                                  timeFrame={ pieChart1Data.length }
                               />
                           ) }
                       </CardBody>
@@ -270,7 +197,7 @@ const OrganizationStatistics = () => {
                       <CardBody style={ { padding: 0 } }>
                           <CardTitle style={ { padding: 0 } }>
                               <h2 style={ { marginLeft: '20px' } }>
-                      Usage by Organization (Tasks)
+                                  Usage by Organization (Tasks)
                               </h2>
                           </CardTitle>
                           { isLoading && <LoadingState /> }
@@ -280,7 +207,7 @@ const OrganizationStatistics = () => {
                                   margin={ { top: 20, right: 20, bottom: 0, left: 20 } }
                                   id="d3-donut-2-chart-root"
                                   data={ pieChart2Data }
-                                  timeFrame={ timeframe }
+                                  timeFrame={ pieChart2Data.length }
                               />
                           ) }
                       </CardBody>

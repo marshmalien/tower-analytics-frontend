@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 export const jobExplorer = {
     attributes: [
         'id',
@@ -25,4 +24,18 @@ export const jobExplorer = {
         onlyRootWorkflowsAndStandaloneJobs: false,
         limit: 5
     }
+};
+
+export const organizationStatistics = {
+    defaultParams: {
+        status: [],
+        orgId: [],
+        quickDateRange: 'last_30_days',
+        sortBy: 'desc',
+        limit: 5
+    },
+    sortBy: [
+        { key: 'desc', value: 'Top 5 Orgs' },
+        { key: 'asc', value: 'Bottom 5 Orgs' }
+    ]
 };
