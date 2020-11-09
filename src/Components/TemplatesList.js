@@ -189,7 +189,7 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
                   </PFDataListCell>
               </PFDataListItem>
           ) }
-          { !isLoading && templates.map(({ name, total_count, id }, index) => (
+          { !isLoading && templates.map(({ name, count, id }, index) => (
               <DataListItem aria-labelledby="top-templates-detail" key={ index }>
                   <DataListCell>
                       <a

@@ -35,22 +35,6 @@ import ModulesList from '../../Components/ModulesList';
 import TemplatesList from '../../Components/TemplatesList';
 import FilterableToolbar from '../../Components/Toolbar';
 
-const CardTitle = styled(PFCardTitle)`
-  border-bottom: 2px solid #ebebeb;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  &&& {
-    min-height: 60px;
-    --pf-c-card--first-child--PaddingTop: 10px;
-    --pf-c-card__header--not-last-child--PaddingBottom: 10px;
-
-    h3 {
-      font-size: 0.875em;
-    }
-  }
-`;
-
 const initialQueryParams = {
     startDate: moment()
     .subtract(1, 'month')
