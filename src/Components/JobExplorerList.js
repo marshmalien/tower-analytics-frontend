@@ -105,14 +105,14 @@ const buildListRow = (items, ariaLabel, ariaLabelledBy, windowWidth) => {
                             <DataListItemCells
                                 dataListCells={ [
                                     <DataListCell key={ count++ }>
-                                        <a href={ item.id.tower_link } target='_blank' rel='noopener noreferrer'>
+                                        <a href={ item.id.towerLink } target='_blank' rel='noopener noreferrer'>
                                             { windowWidth < mobileBreakpoint &&
                                              <span style={ { color: 'initial', fontWeight: 'bold' } }>
                                                  Id/Name<ExternalLinkIcon />:
                                              </span>
                                             }
                                             &nbsp;
-                                            { `${item.id.id} - ${item.id.template_name}` }
+                                            { `${item.id.id} - ${item.id.templateName}` }
                                         </a>
                                     </DataListCell>,
                                     <DataListCell key={ count++ }>
@@ -123,13 +123,13 @@ const buildListRow = (items, ariaLabel, ariaLabelledBy, windowWidth) => {
                                             &nbsp;
                                         <JobStatus status={ item.status } />
                                     </DataListCell>,
-                                    <Tooltip key={ count++ } content={ <p>{ item.cluster_name }</p> }>
+                                    <Tooltip key={ count++ } content={ <p>{ item.clusterName }</p> }>
                                         <DataListCell>
                                             { windowWidth <= mobileBreakpoint &&
                                             <span style={ { color: 'initial', fontWeight: 'bold' } }>Cluster:</span>
                                             }
                                             &nbsp;
-                                            { item.cluster_name }
+                                            { item.clusterName }
                                         </DataListCell>
                                     </Tooltip>,
                                     <DataListCell key={ count++ }>
@@ -137,14 +137,14 @@ const buildListRow = (items, ariaLabel, ariaLabelledBy, windowWidth) => {
                                          <span style={ { color: 'initial', fontWeight: 'bold' } }>Organization:</span>
                                         }
                                         &nbsp;
-                                        { item.org_name }
+                                        { item.orgName }
                                     </DataListCell>,
                                     <DataListCell key={ count++ }>
                                         { windowWidth <= mobileBreakpoint &&
                                          <span style={ { color: 'initial', fontWeight: 'bold' } }>Type:</span>
                                         }
                                          &nbsp;
-                                        { formatJobType(item.job_type) }
+                                        { formatJobType(item.jobType) }
                                     </DataListCell>
                                 ] }
                             />
