@@ -1,9 +1,6 @@
 /* eslint-disable camelcase */
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import {
-    withRouter
-} from 'react-router-dom';
 
 import initializeChart from './BaseChart';
 import * as d3 from 'd3';
@@ -450,4 +447,4 @@ GroupedBarChart.propTypes = {
     history: PropTypes.object
 };
 
-export default initializeChart(withRouter(GroupedBarChart));
+export default initializeChart(GroupedBarChart);
