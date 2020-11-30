@@ -40,6 +40,17 @@
   }
 }
 
+.pf-c-modal-box__footer {
+  display: flex;
+  justify-content: space-between;
+}
+
+.pf-c-modal-box__header {
+  border-bottom: 1px solid var(--pf-global--BorderColor--light-100);
+  padding-bottom: 24px;
+  margin: 0 !important;
+}
+
 @media only screen and (max-width: 600px) {
   .dataCard {
     flex-direction: column;

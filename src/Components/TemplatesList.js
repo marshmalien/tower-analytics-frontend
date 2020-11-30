@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*eslint camelcase: ["error", {allow: ["template_id", "job_type", "cluster_id", "start_date", "end_date", "quick_date_range"]}]*/
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
@@ -11,16 +12,17 @@ import { formatQueryStrings } from '../Utilities/formatQueryStrings';
 import {
     Badge,
     Button,
-    DataList,
+    DataList as PFDataList,
     DataListItem as PFDataListItem,
     DataListCell as PFDataListCell,
     Modal,
-    Label
+    Title
 } from '@patternfly/react-core';
 
 import { CircleIcon } from '@patternfly/react-icons';
 
 import { readTemplateJobs } from '../Api';
+import JobStatus from './JobStatus';
 
 const success = (
     <CircleIcon
@@ -49,9 +51,13 @@ const PFDataListItemNoBorder = styled(PFDataListItem)`
     margin-bottom: -20px;
 `;
 
+const DataList = styled(PFDataList)`
+    border-top: none;
+`;
+
 const DataListItem = styled(PFDataListItem)`
   display: flex;
-  flex-direction: row;
+  flex-direction: row; 
   justify-content: space-around;
   padding: 0 15px 10px 15px;
   justify-content: center;
@@ -69,18 +75,10 @@ const DataListItemCompact = styled(DataListItem)`
   }
 `;
 
-const DataListCellCompact = styled(DataListCell)`
-    padding: 7px;
-`;
-
 const DataListFocus = styled.div`
     display: grid;
     grid-template-columns: repeat(3, auto);
     grid-gap: 10px;
-    padding: var(--pf-global--spacer--lg);
-    background: #ebebeb;
-    border: 1px solid #ccc;
-    border-top: none;
     margin-bottom: 20px;
 `;
 
@@ -112,6 +110,8 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
     const [ selectedId, setSelectedId ] = useState(null);
     const [ selectedTemplate, setSelectedTemplate ] = useState([]);
     const [ relatedJobs, setRelatedJobs ] = useState([]);
+
+    console.log(selectedTemplate)
 
     useEffect(() => {
         const fetchTemplateDetails = () => {
@@ -212,7 +212,9 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
       { selectedTemplate && selectedTemplate !== [] && (
           <Modal
               width={ '80%' }
-              title={ selectedTemplate.name ? selectedTemplate.name : 'no-template-name' }
+              title={ selectedTemplate.name ? 
+                <Title headingLevel="h2" size="2xl">{ selectedTemplate.name }</Title>
+                : <Title headingLevel="h2" size="2xl">no-template-name</Title> }
               isOpen={ isModalOpen }
               onClose={ () => {
                   setIsModalOpen(false);
@@ -223,7 +225,7 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
               actions={ [
                   <Button
                       key="cancel"
-                      variant="secondary"
+                      variant="primary"
                       onClick={ () => {
                           setIsModalOpen(false);
                           setSelectedTemplate([]);
@@ -232,7 +234,14 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
                       } }
                   >
               Close
-                  </Button>
+                  </Button>,
+                  <DataListItemCompact>
+                    <DataCellEndCompact>
+                        <Button component="a" onClick={ redirectToJobExplorer } variant="link">
+                            View all jobs
+                        </Button>
+                    </DataCellEndCompact>
+                  </DataListItemCompact>,
               ] }
           >
               <DataList aria-label="Selected Template Details">
@@ -255,6 +264,11 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
                               { selectedTemplate.average_run ?
                                   selectedTemplate.average_run : 'Unavailable' }
                           </div>
+                          <div aria-labelledby="type">
+                              <b style={ { marginRight: '10px' } }>Type</b>
+                              { selectedTemplate.type ?
+                                selectedTemplate.type : 'Unavailable' }
+                          </div>
                           <div aria-labelledby="success rate">
                               <b style={ { marginRight: '10px' } }>Success rate</b>
                               { !isNaN(selectedTemplate.success_rate) ?
@@ -267,18 +281,12 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
                           </div>
                       </DataListFocus>
                   </PFDataListItemNoBorder>
-                  <DataListItemCompact>
-                      <DataListCellCompact key="last5jobs">
-                          <Label variant="outline">Last 5 jobs</Label>
-                      </DataListCellCompact>,
-                      <DataCellEndCompact>
-                          <Button component="a" onClick={ redirectToJobExplorer } variant="link">
-                              View all jobs
-                          </Button>
-                      </DataCellEndCompact>
+                  <DataListItemCompact  style={{ borderBottom: 'none'}}>
+                    <PFDataListCell>Last 5 jobs</PFDataListCell>
                   </DataListItemCompact>
-                  <DataListItemCompact aria-labelledby="datalist header">
+                  <DataListItemCompact aria-labelledby="datalist header" style={{ borderTop: 'none' }}>
                       <PFDataListCell key="job heading">Id/Name</PFDataListCell>
+                      <PFDataListCell key="job status">Status</PFDataListCell>
                       <PFDataListCell key="cluster heading">Cluster</PFDataListCell>
                       <PFDataListCell key="start time heading">Start Time</PFDataListCell>
                       <PFDataListCell key="total time heading">Total Time</PFDataListCell>
@@ -291,11 +299,14 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
                       key={ `job-details-${index}` }
                       aria-labelledby="job details"
                   >
-                      <PFDataListCell key="job name">
+                      <PFDataListCell wrapmodifier="DataListWrapModifier" key="job name">
                           { job.status === 'successful' ? success : fail }{ ' ' }
                           { job.job_id } - { job.job_name }
                       </PFDataListCell>
-                      <PFDataListCell key="job cluster">
+                      <PFDataListCell key="job status">
+                          <JobStatus status={job.status} />
+                      </PFDataListCell>
+                      <PFDataListCell wrapmodifier="DataListWrapModifier" key="job cluster">
                           { job.cluster_label || job.install_uuid }
                       </PFDataListCell>
                       <PFDataListCell key="start time">
