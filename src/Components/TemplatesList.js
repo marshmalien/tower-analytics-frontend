@@ -112,7 +112,7 @@ const formatTopFailedTask = data => {
 const formatSuccessRate = (successCount, totalCount) => Math.ceil(successCount / totalCount * 100) + '%';
 const formatAvgRun = (elapsed, totalCount) => new Date(Math.ceil(elapsed / totalCount) * 1000).toISOString().substr(11, 8);
 const formatTotalTime = elapsed => new Date(elapsed * 1000).toISOString().substr(11, 8);
-const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, qp }) => {
+const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, qp, title }) => {
     const [ isModalOpen, setIsModalOpen ] = useState(false);
     const [ selectedId, setSelectedId ] = useState(null);
     const [ selectedTemplate, setSelectedTemplate ] = useState([]);
@@ -208,7 +208,7 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, 
       } }>
           <DataListItem aria-labelledby="top-templates-header">
               <DataListCell>
-                  <h3>Top templates</h3>
+                  <h3>{ title }</h3>
               </DataListCell>
               <DataCellEnd>
                   <h3>Usage</h3>
@@ -362,7 +362,8 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, 
 TemplatesList.propTypes = {
     templates: PropTypes.array,
     isLoading: PropTypes.bool,
-    queryParams: PropTypes.object
+    queryParams: PropTypes.object,
+    title: PropTypes.string
 };
 
 export default TemplatesList;

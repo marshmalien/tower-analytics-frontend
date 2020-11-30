@@ -9,9 +9,9 @@ import LoadingState from '../../Components/LoadingState';
 import EmptyState from '../../Components/EmptyState';
 import {
     preflightRequest,
-    readModules,
     readJobExplorerOptions,
-    readJobExplorer
+    readJobExplorer,
+    readEventExplorer
 } from '../../Api';
 
 import { jobExplorer } from '../../Utilities/constants';
@@ -42,11 +42,25 @@ const topTemplateParams = {
     groupByTime: false
 };
 
+const topWorkflowParams = {
+    groupBy: 'template',
+    limit: 10,
+    jobType: [ 'workflowjob' ],
+    groupByTime: false
+};
+
+const moduleParams = {
+    groupBy: 'module',
+    sortBy: 'host_task_count:desc',
+    limit: 10
+};
+
 const Clusters = ({ history }) => {
     const [ preflightError, setPreFlightError ] = useState(null);
     const [ barChartData, setBarChartData ] = useState([]);
     const [ lineChartData, setLineChartData ] = useState([]);
     const [ templatesData, setTemplatesData ] = useState([]);
+    const [ workflowData, setWorkflowsData ] = useState([]);
     const [ modulesData, setModulesData ] = useState([]);
     const [ isLoading, setIsLoading ] = useState(true);
 
@@ -83,6 +97,8 @@ const Clusters = ({ history }) => {
                 [
                     readJobExplorer({ params: urlMappedQueryParams(queryParams) }),
                     readJobExplorer({ params: urlMappedQueryParams(topTemplatesParams) }),
+                    readJobExplorer({ params: urlMappedQueryParams(topWorkflowParams) }),
+                    readEventExplorer({ params: urlMappedQueryParams(moduleParams) }),
                     readJobExplorerOptions({ params: optionsQueryParams })
                 ].map(p => p.catch(() => []))
             );
@@ -98,6 +114,8 @@ const Clusters = ({ history }) => {
                 ([
                     { items: jobExplorerData = []},
                     { items: templatesData = []},
+                    { items: workflowData = []},
+                    { items: modulesData = []},
                     {
                         cluster_id,
                         org_id,
@@ -111,6 +129,8 @@ const Clusters = ({ history }) => {
                     if (!ignore) {
                         queryParams.cluster_id ? setLineChartData(jobExplorerData) : setBarChartData(jobExplorerData);
                         setTemplatesData(templatesData);
+                        setModulesData(modulesData);
+                        setWorkflowsData(workflowData);
                         setClusterIds(cluster_id);
                         setOrgIds(org_id);
                         setTemplateIds(template_id);
@@ -136,11 +156,11 @@ const Clusters = ({ history }) => {
             readJobExplorer({ params: urlMappedQueryParams(queryParams) }).then(({ items: chartData }) => {
                 queryParams.clusterId.length > 0 ? setLineChartData(chartData) : setBarChartData(chartData);
             });
-            readModules({ params: queryParams }).then(({ modules: modulesData }) => {
-                setModulesData(modulesData);
-            });
             readJobExplorer({ params: topTemplatesParams }).then(({ items: templatesData }) => {
                 setTemplatesData(templatesData);
+            });
+            readEventExplorer({ params: urlMappedQueryParams(moduleParams) }).then(({ items: modulesData }) => {
+                setModulesData(modulesData);
             });
         };
 
@@ -212,11 +232,21 @@ const Clusters = ({ history }) => {
                       queryParams={ queryParams }
                       qp={ urlMappedQueryParams(queryParams) }
                       clusterId={ queryParams.cluster_id }
+                      templates={ workflowData }
+                      isLoading={ isLoading }
+                      title={ 'Top workflows' }
+                  />
+                  <TemplatesList
+                      history={ history }
+                      queryParams={ queryParams }
+                      qp={ urlMappedQueryParams(queryParams) }
+                      clusterId={ queryParams.cluster_id }
                       templates={ templatesData }
                       isLoading={ isLoading }
+                      title={ 'Top templates' }
                   />
                   <ModulesList
-                      modules={ modulesData.slice(0, 10) }
+                      modules={ modulesData }
                       isLoading={ isLoading }
                   />
               </div>
