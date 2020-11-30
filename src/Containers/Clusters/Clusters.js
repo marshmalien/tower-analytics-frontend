@@ -2,7 +2,6 @@
 /*eslint camelcase: ["error", {allow: ["setStart_Date","setEnd_Date","cluster_id","org_id","job_type","template_id","quick_date_range","sort_by", "start_date", "end_date", "group_by_time", "group_by"]}]*/
 
 import React, { useState, useEffect } from 'react';
-import moment from 'moment';
 
 import { useQueryParams } from '../../Utilities/useQueryParams';
 
@@ -34,22 +33,13 @@ import LineChart from '../../Charts/LineChart';
 import ModulesList from '../../Components/ModulesList';
 import TemplatesList from '../../Components/TemplatesList';
 import FilterableToolbar from '../../Components/Toolbar';
-
-const initialQueryParams = {
-    startDate: moment()
-    .subtract(1, 'month')
-    .format('YYYY-MM-DD'),
-    endDate: moment().format('YYYY-MM-DD')
-};
-
-const jobRunParams = {
-    status: [ 'successful', 'failed' ],
-    group_by_time: true
-};
+import { clusters } from '../../Utilities/constants';
 
 const topTemplateParams = {
-    group_by: 'template',
-    limit: 10
+    groupBy: 'template',
+    limit: 10,
+    jobType: [ 'job' ],
+    groupByTime: false
 };
 
 const Clusters = ({ history }) => {
@@ -59,7 +49,6 @@ const Clusters = ({ history }) => {
     const [ templatesData, setTemplatesData ] = useState([]);
     const [ modulesData, setModulesData ] = useState([]);
     const [ isLoading, setIsLoading ] = useState(true);
-    const [ firstRender, setFirstRender ] = useState(true);
 
     const [ orgIds, setOrgIds ] = useState([]);
     const [ clusterIds, setClusterIds ] = useState([]);
@@ -68,30 +57,11 @@ const Clusters = ({ history }) => {
     const [ statuses, setStatuses ] = useState([]);
     const [ jobTypes, setJobTypes ] = useState([]);
     const [ quickDateRanges, setQuickDateRanges ] = useState([]);
-
     const {
         queryParams,
-        setJobType,
-        setOrg,
-        setStatus,
-        setCluster,
-        setTemplate,
-        setSortBy2,
-        setQuickDateRange,
-        setRootWorkflowsAndJobs,
-        setStart_Date,
-        setEnd_Date
-    } = useQueryParams(initialQueryParams);
-
-    const combinedJobRunParams = {
-        ...queryParams,
-        ...jobRunParams
-    };
-
-    const combinedTemplatesListParams = {
-        ...queryParams,
-        ...topTemplateParams
-    };
+        urlMappedQueryParams,
+        setFromToolbar
+    } = useQueryParams({ ...clusters.defaultParams });
 
     const initialOptionsParams = {
         attributes: jobExplorer.attributes
@@ -101,141 +71,18 @@ const Clusters = ({ history }) => {
         initialOptionsParams
     );
 
-    const formattedArray = datum => {
-        if (Array.isArray(datum)) {
-            return [ ...datum ];
-        } else {
-            return datum.split();
-        }
+    const topTemplatesParams = {
+        ...queryParams,
+        ...topTemplateParams
     };
-
-    const [ filters, setFilters ] = useState({
-        status: queryParams.status
-            ? formattedArray(queryParams.status)
-            : [ 'successful', 'failed' ],
-        type: queryParams.job_type
-            ? formattedArray(queryParams.job_type)
-            : [ 'job', 'workflowjob' ],
-        org: queryParams.org_id ? formattedArray(queryParams.org_id) : [],
-        cluster: queryParams.cluster_id ? formattedArray(queryParams.cluster_id) : [],
-        template: queryParams.template_id ? formattedArray(queryParams.template_id) : [],
-        sortby: queryParams.sort_by ? queryParams.sort_by : null,
-        startDate: queryParams.start_date ? queryParams.start_date : null,
-        endDate: queryParams.end_date ? queryParams.end_date : null,
-        date: queryParams.quick_date_range ? queryParams.quick_date_range : 'last_30_days',
-        showRootWorkflows: queryParams.only_root_workflows_and_standalone_jobs === 'true' ? true : false
-    });
-
-    const onDelete = (type, val) => {
-        let filtered;
-        Number.isInteger(val) ? (val = parseInt(val)) : val;
-
-        if (type === 'Status') {
-            filtered = statuses.filter(status => status.value === val);
-        }
-
-        if (type === 'Type') {
-            filtered = jobTypes.filter(job => job.value === val);
-        }
-
-        if (type === 'Org') {
-            filtered = orgIds.filter(org => org.value === val);
-        }
-
-        if (type === 'Cluster') {
-            filtered = clusterIds.filter(cluster => cluster.value === val);
-        }
-
-        if (type === 'Template') {
-            filtered = templateIds.filter(template => template.value === val);
-        }
-
-        if (type) {
-            if (type === 'Date') {
-                setFilters({
-                    ...filters,
-                    date: null,
-                    startDate: null,
-                    endDate: null
-                });
-            } else if (type === 'SortBy') {
-                setFilters({
-                    ...filters,
-                    sortby: null
-                });
-            } else {
-                setFilters({
-                    ...filters,
-                    [type.toLowerCase()]: filters[type.toLowerCase()].filter(
-                        value => value !== filtered[0].key.toString()
-                    )
-                });
-            }
-        } else {
-            setFilters({
-                status: [],
-                type: [],
-                org: [],
-                cluster: [],
-                template: [],
-                sortby: null,
-                date: null,
-                startDate: null,
-                endDate: null,
-                showRootWorkflows: false
-            });
-        }
-    };
-
-    useEffect(() => {
-        if (firstRender) {
-            return;
-        }
-
-        if (filters.type) {
-            setJobType(filters.type);
-        }
-
-        if (filters.status) {
-            setStatus(filters.status);
-        }
-
-        if (filters.org) {
-            setOrg(filters.org);
-        }
-
-        if (filters.cluster) {
-            setCluster(filters.cluster);
-        }
-
-        if (filters.template) {
-            setTemplate(filters.template);
-        }
-
-        // The filter can change back to null too.
-        setSortBy2(filters.sortby);
-
-        setRootWorkflowsAndJobs(filters.showRootWorkflows);
-
-        setQuickDateRange(filters.date);
-
-        if (filters.date !== 'custom') {
-            setStart_Date(null);
-            setEnd_Date(null);
-        } else {
-            setStart_Date(filters.startDate);
-            setEnd_Date(filters.endDate);
-        }
-    }, [ filters ]);
-
     useEffect(() => {
         let ignore = false;
 
         const fetchEndpoints = () => {
             return Promise.all(
                 [
-                    readJobExplorer({ params: combinedJobRunParams }),
-                    readJobExplorer({ params: combinedTemplatesListParams }),
+                    readJobExplorer({ params: urlMappedQueryParams(queryParams) }),
+                    readJobExplorer({ params: urlMappedQueryParams(topTemplatesParams) }),
                     readJobExplorerOptions({ params: optionsQueryParams })
                 ].map(p => p.catch(() => []))
             );
@@ -271,8 +118,8 @@ const Clusters = ({ history }) => {
                         setStatuses(status);
                         setJobTypes(job_type);
                         setQuickDateRanges(quick_date_range);
-                        setFirstRender(false);
                         setIsLoading(false);
+
                     }
                 }
             );
@@ -285,23 +132,20 @@ const Clusters = ({ history }) => {
 
     // Get and update the data
     useEffect(() => {
-        setIsLoading(true);
-        window.insights.chrome.auth.getUser().then(() =>
-            Promise.all([
-                readModules({ params: queryParams }),
-                readJobExplorer({ params: combinedTemplatesListParams }),
-                readJobExplorer({ params: combinedJobRunParams })
-            ]).then(([
-                { modules: modulesData = []},
-                { items: templatesData = []},
-                { items: chartData = []}
-            ]) => {
-                queryParams.cluster_id ? setLineChartData(chartData) : setBarChartData(chartData);
+        const update = () => {
+            readJobExplorer({ params: urlMappedQueryParams(queryParams) }).then(({ items: chartData }) => {
+                queryParams.clusterId.length > 0 ? setLineChartData(chartData) : setBarChartData(chartData);
+            });
+            readModules({ params: queryParams }).then(({ modules: modulesData }) => {
                 setModulesData(modulesData);
+            });
+            readJobExplorer({ params: topTemplatesParams }).then(({ items: templatesData }) => {
                 setTemplatesData(templatesData);
-                setIsLoading(false);
-            }).catch(() => [])
-        );
+            });
+        };
+
+        setIsLoading(true);
+        new Promise(update).finally(setIsLoading(false));
     }, [ queryParams ]);
 
     return (
@@ -309,16 +153,17 @@ const Clusters = ({ history }) => {
             <PageHeader>
                 <PageHeaderTitle title={ 'Clusters' } />
                 <FilterableToolbar
-                    orgs={ orgIds }
-                    statuses={ statuses }
-                    clusters={ clusterIds }
-                    templates={ templateIds }
-                    types={ jobTypes }
-                    sortables={ sortBy }
-                    dateRanges={ quickDateRanges }
-                    onDelete={ onDelete }
-                    passedFilters={ filters }
-                    handleFilters={ setFilters }
+                    categories={ {
+                        status: statuses,
+                        quickDateRange: quickDateRanges,
+                        jobType: jobTypes,
+                        orgId: orgIds,
+                        clusterId: clusterIds,
+                        templateId: templateIds,
+                        sortBy
+                    } }
+                    filters={ queryParams }
+                    setFilters={ setFromToolbar }
                 />
             </PageHeader>
             { preflightError && (
@@ -335,7 +180,7 @@ const Clusters = ({ history }) => {
                   </PFCardTitle>
                   <CardBody>
                       { isLoading && !preflightError && <LoadingState /> }
-                      { !queryParams.cluster_id &&
+                      { queryParams.clusterId.length <= 0 &&
                   barChartData.length > 0 &&
                   !isLoading && (
                           <BarChart
@@ -345,7 +190,7 @@ const Clusters = ({ history }) => {
                               value={ barChartData.length }
                           />
                       ) }
-                      { queryParams.cluster_id  &&
+                      { queryParams.clusterId.length > 0  &&
                   lineChartData.length > 0 &&
                   !isLoading && (
                           <LineChart
@@ -365,6 +210,7 @@ const Clusters = ({ history }) => {
                   <TemplatesList
                       history={ history }
                       queryParams={ queryParams }
+                      qp={ urlMappedQueryParams(queryParams) }
                       clusterId={ queryParams.cluster_id }
                       templates={ templatesData }
                       isLoading={ isLoading }

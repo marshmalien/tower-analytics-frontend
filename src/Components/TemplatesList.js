@@ -1,7 +1,8 @@
 /*eslint camelcase: ["error", {allow: ["template_id", "job_type", "cluster_id", "start_date", "end_date", "quick_date_range", "total_count"]}]*/
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { formatDateTime, formatSeconds, formatPercentage } from '../Utilities/helpers';
+import { formatDateTime, formatSeconds } from '../Utilities/helpers';
+import { useQueryParams } from '../Utilities/useQueryParams';
 import styled from 'styled-components';
 import LoadingState from '../Components/LoadingState';
 import NoData from '../Components/NoData';
@@ -19,7 +20,9 @@ import {
 
 import { CircleIcon } from '@patternfly/react-icons';
 
-import { readTemplateJobs } from '../Api';
+import {
+    readJobExplorer
+} from '../Api';
 
 const success = (
     <CircleIcon
@@ -99,29 +102,74 @@ const formatTopFailedTask = data => {
     }
 
     if (data && data[0]) {
-        const percentage = formatPercentage(data[0].fail_rate);
-        return `${data[0].task_name} ${percentage}`;
+        const percentage = Math.ceil(data[0].failed_count / data[0].total_failed_count * 100);
+        return `${data[0].task_name} ${percentage}%`;
     }
 
     return `Unavailable`;
 };
 
-const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }) => {
+const formatSuccessRate = (successCount, totalCount) => Math.ceil(successCount / totalCount * 100) + '%';
+const formatAvgRun = (elapsed, totalCount) => new Date(Math.ceil(elapsed / totalCount) * 1000).toISOString().substr(11, 8);
+const formatTotalTime = elapsed => new Date(elapsed * 1000).toISOString().substr(11, 8);
+const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, qp }) => {
     const [ isModalOpen, setIsModalOpen ] = useState(false);
     const [ selectedId, setSelectedId ] = useState(null);
     const [ selectedTemplate, setSelectedTemplate ] = useState([]);
     const [ relatedJobs, setRelatedJobs ] = useState([]);
+    const [ stats, setStats ] = useState([]);
+
+    const {
+        urlMappedQueryParams
+    } = useQueryParams({});
+
+    const relatedTemplateJobsParams = {
+        ...qp,
+        templateId: [ selectedId ],
+        attributes: [
+            'id',
+            'status',
+            'job_type',
+            'started',
+            'finished',
+            'elapsed',
+            'created',
+            'cluster_name',
+            'org_name',
+            'most_failed_tasks'
+        ],
+        groupByTime: false,
+        limit: 5,
+        sortBy: 'created:asc',
+        quickDateRange: qp.quick_date_range ? qp.quick_date_range : 'last_30_days',
+        jobType: [ 'job' ]
+    };
+
+    const agreggateTemplateParams = {
+        groupBy: 'template',
+        templateId: [ selectedId ],
+        attributes: [
+            'elapsed',
+            'job_type',
+            'most_failed_tasks',
+            'successful_count',
+            'failed_count',
+            'total_count'
+        ],
+        status: qp.status,
+        quickDateRange: qp.quick_date_range ? qp.quick_date_range : 'last_30_days',
+        jobType: [ 'job' ]
+    };
 
     useEffect(() => {
-        const fetchTemplateDetails = () => {
-            return readTemplateJobs(selectedId, { params: queryParams });
-        };
-
         const update = async () => {
             await window.insights.chrome.auth.getUser();
-            fetchTemplateDetails().then(data => {
-                setSelectedTemplate(data);
-                setRelatedJobs(data.related_jobs);
+            readJobExplorer({ params: urlMappedQueryParams(agreggateTemplateParams) }).then(({ items: stats }) => {
+                setStats(stats[0]);
+            });
+            // template jobs list
+            readJobExplorer({ params: urlMappedQueryParams(relatedTemplateJobsParams) }).then(({ items: fooBar }) => {
+                setRelatedJobs(fooBar);
             });
         };
 
@@ -189,7 +237,7 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
                   </PFDataListCell>
               </PFDataListItem>
           ) }
-          { !isLoading && templates.map(({ name, count, id }, index) => (
+          { !isLoading && templates.map(({ name, total_count, id }, index) => (
               <DataListItem aria-labelledby="top-templates-detail" key={ index }>
                   <DataListCell>
                       <a
@@ -202,7 +250,7 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
                       </a>
                   </DataListCell>
                   <DataCellEnd>
-                      { count }
+                      { total_count }
                   </DataCellEnd>
               </DataListItem>
           )) }
@@ -210,7 +258,7 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
       { selectedTemplate && selectedTemplate !== [] && (
           <Modal
               width={ '80%' }
-              title={ selectedTemplate.name ? selectedTemplate.name : 'no-template-name' }
+              title={ stats.name ? stats.name : 'no-template-name' }
               isOpen={ isModalOpen }
               onClose={ () => {
                   setIsModalOpen(false);
@@ -240,28 +288,28 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
                       <DataListFocus>
                           <div aria-labelledby="job runs">
                               <b style={ { marginRight: '10px' } }>Number of runs</b>
-                              { selectedTemplate.total_run_count ?
-                                  selectedTemplate.total_run_count : 'Unavailable' }
+                              { stats.total_count ?
+                                  stats.total_count : 'Unavailable' }
                           </div>
                           <div aria-labelledby="total time">
                               <b style={ { marginRight: '10px' } }>Total time</b>
-                              { selectedTemplate.total_run ?
-                                  selectedTemplate.total_run : 'Unavailable' }
+                              { stats.elapsed ?
+                                  formatTotalTime(stats.elapsed) : 'Unavailable' }
                           </div>
                           <div aria-labelledby="Avg Time">
                               <b style={ { marginRight: '10px' } }>Avg time</b>
-                              { selectedTemplate.average_run ?
-                                  selectedTemplate.average_run : 'Unavailable' }
+                              { stats.elapsed ?
+                                  formatAvgRun(stats.elapsed, stats.total_count) : 'Unavailable' }
                           </div>
                           <div aria-labelledby="success rate">
                               <b style={ { marginRight: '10px' } }>Success rate</b>
-                              { !isNaN(selectedTemplate.success_rate) ?
-                                  formatPercentage(selectedTemplate.success_rate) : 'Unavailable' }
+                              { !isNaN(stats.successful_count) ?
+                                  formatSuccessRate(stats.successful_count, stats.total_count) : 'Unavailable' }
                           </div>
                           <div aria-labelledby="most failed task">
                               <b style={ { marginRight: '10px' } }>Most failed task</b>
-                              { selectedTemplate.most_failed_tasks ?
-                                  formatTopFailedTask(selectedTemplate.most_failed_tasks) : 'Unavailable' }
+                              { stats.most_failed_tasks ?
+                                  formatTopFailedTask(stats.most_failed_tasks) : 'Unavailable' }
                           </div>
                       </DataListFocus>
                   </PFDataListItemNoBorder>
@@ -291,16 +339,16 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams }
                   >
                       <PFDataListCell key="job name">
                           { job.status === 'successful' ? success : fail }{ ' ' }
-                          { job.job_id } - { job.job_name }
+                          { job.id.id } - { job.id.template_name }
                       </PFDataListCell>
                       <PFDataListCell key="job cluster">
-                          { job.cluster_label || job.install_uuid }
+                          { job.cluster_name }
                       </PFDataListCell>
                       <PFDataListCell key="start time">
-                          { formatDateTime(job.start_time) }
+                          { formatDateTime(job.started) }
                       </PFDataListCell>
                       <PFDataListCell key="total time">
-                          { formatSeconds(job.total_time) }
+                          { formatSeconds(job.elapsed) }
                       </PFDataListCell>
                   </DataListItem>
               )) }

@@ -107,7 +107,7 @@ const JobExplorer = ({
 
     const updateURL = () => {
         const { jobExplorer } = Paths;
-        const search = stringify(urlMappedQueryParams, { arrayFormat: 'bracket' });
+        const search = stringify(urlMappedQueryParams(queryParams), { arrayFormat: 'bracket' });
         history.push({
             pathname: jobExplorer,
             search
@@ -125,7 +125,7 @@ const JobExplorer = ({
             await preflightRequest().catch(error => {
                 setPreFlightError({ preflightError: error });
             });
-            readJobExplorerOptions({ params: optionsQueryParams })
+            readJobExplorerOptions({ params: urlMappedQueryParams(optionsQueryParams) })
             .then(
                 ({
                     cluster_id,
@@ -157,7 +157,7 @@ const JobExplorer = ({
             setApiError(null);
             setIsLoading(true);
             await window.insights.chrome.auth.getUser();
-            readJobExplorer({ params: urlMappedQueryParams })
+            readJobExplorer({ params: urlMappedQueryParams(combined) })
             .then(({ items: jobExplorerData = [], meta }) => {
                 setJobExplorerData(jobExplorerData);
                 setMeta(meta);

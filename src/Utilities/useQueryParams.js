@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*eslint camelcase: ["error", {properties: "never", ignoreDestructuring: true}]*/
 /*eslint no-unused-vars: ["error", { "varsIgnorePattern": "[iI]gnored" }]*/
 
@@ -39,16 +40,17 @@ export const useQueryParams = initial => {
             case 'SET_TEMPLATE':
             case 'SET_SORTBY':
             case 'SET_ROOT_WORKFLOWS_AND_JOBS':
+            case 'SET_QUICK_DATE_RANGE':
                 return { ...state, ...value };
-            case 'SET_QUICK_DATE_RANGE': {
-                let newState = { ...state };
-                if (value !== 'custom') {
-                    newState = { ...newState, startDate: '', endDate: '' };
-                }
+                // case 'SET_QUICK_DATE_RANGE': {
+                //     let newState = { ...state };
+                //     if (value !== 'custom') {
+                //         newState = { ...newState, startDate: '', endDate: '' };
+                //     }
 
-                newState = { ...newState, ...value };
-                return newState;
-            }
+                //     newState = { ...newState, ...value };
+                //     return newState;
+                // }
 
             case 'SET_START_DATE':
             case 'SET_END_DATE': {
@@ -82,23 +84,23 @@ export const useQueryParams = initial => {
     /**
      * Converts queryParams object keys to snake case, which is accepted by the API
      */
-    const urlMappedQueryParams = () => {
+    const urlMappedQueryParams = params => {
         const camelToSnakeCase = str => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
         let urlFormatted = {};
 
-        Object.keys(queryParams).forEach((key) => {
+        Object.keys(params).forEach((key) => {
             // Filter out null and empty array elements
-            if (queryParams[key]) {
-                if (Array.isArray(queryParams[key])) {
-                    if (queryParams[key].length < 1) {
+            if (params[key] !== null || params[key] !== '') {
+                if (Array.isArray(params[key])) {
+                    if (params[key].length < 1) {
                         return;
                     }
                 }
 
-                urlFormatted[camelToSnakeCase(key)] = queryParams[key];
+                urlFormatted[camelToSnakeCase(key)] = params[key];
             }
         });
-
+        console.log('urlformatted', urlFormatted);
         return urlFormatted;
     };
 
@@ -117,7 +119,7 @@ export const useQueryParams = initial => {
 
     return {
         queryParams,
-        urlMappedQueryParams: urlMappedQueryParams(),
+        urlMappedQueryParams,
         dispatch,
         setLimit: limit => dispatch({ type: 'SET_LIMIT', value: { limit }}),
         setOffset: offset => dispatch({ type: 'SET_OFFSET', value: { offset }}),

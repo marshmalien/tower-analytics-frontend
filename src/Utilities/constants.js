@@ -21,10 +21,23 @@ export const jobExplorer = {
         clusterId: [],
         templateId: [],
         sortBy: 'created:desc',
-        startDate: '',
-        endDate: '',
+        // startDate: '',
+        // endDate: '',
         onlyRootWorkflowsAndStandaloneJobs: false,
         limit: 5
+    }
+};
+
+export const clusters = {
+    defaultParams: {
+        status: [ 'successful', 'failed' ],
+        quickDateRange: 'last_30_days',
+        jobType: [ 'workflowjob', 'job' ],
+        group_by_time: true,
+        orgId: [],
+        clusterId: [],
+        templateId: [],
+        onlyRootWorkflowsAndStandaloneJobs: false
     }
 };
 
