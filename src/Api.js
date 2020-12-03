@@ -21,6 +21,8 @@ const roiEndpoint = `/api/tower-analytics/${apiVersion}/roi_templates/`;
 const jobExplorerEndpoint = '/api/tower-analytics/v1/job_explorer/';
 const jobExplorerOptionsEndpoint =
 '/api/tower-analytics/v1/job_explorer_options/';
+const clustersOptionsEndpoint =
+'/api/tower-analytics/v1/dashboard_clusters_options/';
 const eventExplorerEndpoint = '/api/tower-analytics/v1/event_explorer/';
 
 function getAbsoluteUrl() {
@@ -104,6 +106,15 @@ export const readNotifications = ({ params = {}}) => {
 export const readJobExplorerOptions = ({ params = {}}) => {
     const formattedUrl = getAbsoluteUrl();
     let url = new URL(jobExplorerOptionsEndpoint, formattedUrl);
+    return fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(params)
+    }).then(handleResponse);
+};
+
+export const readClustersOptions = ({ params = {}}) => {
+    const formattedUrl = getAbsoluteUrl();
+    let url = new URL(clustersOptionsEndpoint, formattedUrl);
     return fetch(url, {
         method: 'POST',
         body: JSON.stringify(params)

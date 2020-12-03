@@ -40,13 +40,3 @@ export const clusters = {
         onlyRootWorkflowsAndStandaloneJobs: false
     }
 };
-
-export const toolbarCategories = [
-    { name: 'Status', id: 1 },
-    { name: 'Date', id: 2 },
-    { name: 'Job', id: 3 },
-    { name: 'Organization', id: 4 },
-    { name: 'Cluster', id: 5 },
-    { name: 'Template', id: 6 },
-    { name: 'Sort by', id: 7 }
-];
