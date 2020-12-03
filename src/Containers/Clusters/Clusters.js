@@ -67,7 +67,6 @@ const Clusters = ({ history }) => {
     const [ clusterIds, setClusterIds ] = useState([]);
     const [ templateIds, setTemplateIds ] = useState([]);
     const [ sortBy, setSortBy ] = useState(null);
-    const [ statuses, setStatuses ] = useState([]);
     const [ jobTypes, setJobTypes ] = useState([]);
     const [ quickDateRanges, setQuickDateRanges ] = useState([]);
     const {
@@ -119,7 +118,6 @@ const Clusters = ({ history }) => {
                         cluster_id,
                         org_id,
                         job_type,
-                        status,
                         template_id,
                         quick_date_range,
                         sort_by
@@ -134,7 +132,6 @@ const Clusters = ({ history }) => {
                         setOrgIds(org_id);
                         setTemplateIds(template_id);
                         setSortBy(sort_by);
-                        setStatuses(status);
                         setJobTypes(job_type);
                         setQuickDateRanges(quick_date_range);
                         setIsLoading(false);
@@ -173,12 +170,11 @@ const Clusters = ({ history }) => {
                 <PageHeaderTitle title={ 'Clusters' } />
                 <FilterableToolbar
                     categories={ {
-                        status: statuses,
-                        quickDateRange: quickDateRanges,
                         jobType: jobTypes,
                         orgId: orgIds,
                         clusterId: clusterIds,
                         templateId: templateIds,
+                        quickDateRange: quickDateRanges,
                         sortBy
                     } }
                     filters={ queryParams }
