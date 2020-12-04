@@ -202,7 +202,6 @@ const Clusters = ({ history }) => {
                               margin={ { top: 20, right: 20, bottom: 50, left: 70 } }
                               id="d3-bar-chart-root"
                               data={ barChartData }
-                              value={ barChartData.length }
                           />
                       ) }
                       { queryParams.clusterId.length > 0  &&
@@ -212,7 +211,6 @@ const Clusters = ({ history }) => {
                               margin={ { top: 20, right: 20, bottom: 50, left: 70 } }
                               id="d3-line-chart-root"
                               data={ lineChartData }
-                              value={ lineChartData.length }
                               clusterId={ queryParams.cluster_id }
                           />
                       ) }

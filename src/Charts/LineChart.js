@@ -54,14 +54,6 @@ class LineChart extends Component {
         });
     }
 
-    getTickCount() {
-        const { value } = this.props;
-        if (value > 20) {
-            return value / 2;
-        } else {
-            return value;
-        }
-    }
     updateCluster() {
         this.init();
     }
@@ -115,7 +107,7 @@ class LineChart extends Component {
             svg: '#' + this.props.id,
             colors
         });
-        const { data: unformattedData, value } = this.props;
+        const { data: unformattedData } = this.props;
         const parseTime = d3.timeParse('%Y-%m-%d');
 
         const data = unformattedData.reduce(
@@ -186,9 +178,9 @@ class LineChart extends Component {
         .text('Job runs');
         // Add the X Axis
         let ticks;
-        const maxTicks = Math.round(data.length / (value / 2));
+        const maxTicks = Math.round(data.length / (data.length / 2));
         ticks = data.map(d => d.DATE);
-        if (value === 31) {
+        if (data.length > 14) {
             ticks = data
             .map((d, i) => (i % maxTicks === 0 ? d.DATE : undefined))
             .filter(item => item);
@@ -339,7 +331,6 @@ class LineChart extends Component {
 LineChart.propTypes = {
     id: PropTypes.string,
     data: PropTypes.array,
-    value: PropTypes.number,
     margin: PropTypes.object,
     getHeight: PropTypes.func,
     getWidth: PropTypes.func,
