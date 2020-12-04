@@ -1,4 +1,4 @@
-/*eslint camelcase: ["error", {allow: ["total_count"]}]*/
+/*eslint camelcase: ["error", {allow: ["host_task_count"]}]*/
 import React from 'react';
 import PropTypes from 'prop-types';
 import { trimStr } from '../Utilities/helpers';
@@ -66,13 +66,13 @@ const ModulesList = ({ modules, isLoading }) => (
                 </PFDataListCell>
             </PFDataListItem>
         ) }
-        { !isLoading && modules.filter(module => module.name !== null).map(({ name, total_count }, index) => (
+        { !isLoading && modules.filter(module => module.name !== null).map(({ name, host_task_count }, index) => (
             <DataListItem aria-labelledby="top-modules-detail" key={ index }>
                 <DataListCell>
                     <span>{ trimStr(name) }</span>
                 </DataListCell>
                 <DataCellEnd>
-                    { total_count }
+                    { host_task_count }
                 </DataCellEnd>
             </DataListItem>
         )) }
