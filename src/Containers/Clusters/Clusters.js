@@ -35,21 +35,21 @@ import TemplatesList from '../../Components/TemplatesList';
 import FilterableToolbar from '../../Components/Toolbar';
 import { clusters } from '../../Utilities/constants';
 
-const topTemplateParams = {
+const initialTopTemplateParams = {
     groupBy: 'template',
     limit: 10,
     jobType: [ 'job' ],
     groupByTime: false
 };
 
-const topWorkflowParams = {
+const initialTopWorkflowParams = {
     groupBy: 'template',
     limit: 10,
     jobType: [ 'workflowjob' ],
     groupByTime: false
 };
 
-const moduleParams = {
+const initialModuleParams = {
     groupBy: 'module',
     sortBy: 'host_task_count:desc'
 };
@@ -83,10 +83,29 @@ const Clusters = ({ history }) => {
         initialOptionsParams
     );
 
+    const { clusterId, orgId, templateId } = queryParams;
+
     const topTemplatesParams = {
-        ...queryParams,
-        ...topTemplateParams
+        clusterId,
+        orgId,
+        templateId,
+        ...initialTopTemplateParams
     };
+
+    const topWorkflowParams = {
+        clusterId,
+        orgId,
+        templateId,
+        ...initialTopWorkflowParams
+    };
+
+    const topModuleParams = {
+        clusterId,
+        orgId,
+        templateId,
+        ...initialModuleParams
+    };
+
     useEffect(() => {
         let ignore = false;
 
@@ -96,7 +115,7 @@ const Clusters = ({ history }) => {
                     readJobExplorer({ params: urlMappedQueryParams(queryParams) }),
                     readJobExplorer({ params: urlMappedQueryParams(topTemplatesParams) }),
                     readJobExplorer({ params: urlMappedQueryParams(topWorkflowParams) }),
-                    readEventExplorer({ params: urlMappedQueryParams(moduleParams) }),
+                    readEventExplorer({ params: urlMappedQueryParams(topModuleParams) }),
                     readClustersOptions({ params: optionsQueryParams })
                 ].map(p => p.catch(() => []))
             );
@@ -152,10 +171,13 @@ const Clusters = ({ history }) => {
             readJobExplorer({ params: urlMappedQueryParams(queryParams) }).then(({ items: chartData }) => {
                 queryParams.clusterId.length > 0 ? setLineChartData(chartData) : setBarChartData(chartData);
             });
-            readJobExplorer({ params: topTemplatesParams }).then(({ items: templatesData }) => {
+            readJobExplorer({ params: urlMappedQueryParams(topTemplatesParams) }).then(({ items: templatesData }) => {
                 setTemplatesData(templatesData);
             });
-            readEventExplorer({ params: urlMappedQueryParams(moduleParams) }).then(({ items: modulesData }) => {
+            readJobExplorer({ params: urlMappedQueryParams(topWorkflowParams) }).then(({ items: workflowData }) => {
+                setWorkflowsData(workflowData);
+            });
+            readEventExplorer({ params: urlMappedQueryParams(topModuleParams) }).then(({ items: modulesData }) => {
                 setModulesData(modulesData);
             });
         };
