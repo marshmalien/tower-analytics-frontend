@@ -28,13 +28,15 @@ class LineChart extends Component {
     redirectToJobExplorer({ DATE: date }) {
         const { jobExplorer } = Paths;
         const formattedDate = formatDate(date);
-        const { clusterId } = this.props;
+        const { clusterId, templateId, orgId } = this.props;
         const initialQueryParams = {
             start_date: formattedDate,
             end_date: formattedDate,
             quick_date_range: 'custom',
             status: [ 'failed', 'successful' ],
-            cluster_id: clusterId
+            clusterId,
+            orgId,
+            templateId
         };
 
         const search = stringify(initialQueryParams, { arrayFormat: 'bracket' });
@@ -330,12 +332,14 @@ class LineChart extends Component {
 
 LineChart.propTypes = {
     id: PropTypes.string,
+    clusterId: PropTypes.array,
+    templateId: PropTypes.array,
+    orgId: PropTypes.array,
     data: PropTypes.array,
     margin: PropTypes.object,
     getHeight: PropTypes.func,
     getWidth: PropTypes.func,
-    history: PropTypes.object,
-    clusterId: PropTypes.number
+    history: PropTypes.object
 };
 
 export default initializeChart(withRouter(LineChart));

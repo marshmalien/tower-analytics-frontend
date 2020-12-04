@@ -233,6 +233,8 @@ const Clusters = ({ history }) => {
                               margin={ { top: 20, right: 20, bottom: 50, left: 70 } }
                               id="d3-bar-chart-root"
                               data={ barChartData }
+                              templateId={ queryParams.templateId }
+                              orgId={ queryParams.orgId }
                           />
                       ) }
                       { queryParams.clusterId.length > 0  &&
@@ -242,7 +244,9 @@ const Clusters = ({ history }) => {
                               margin={ { top: 20, right: 20, bottom: 50, left: 70 } }
                               id="d3-line-chart-root"
                               data={ lineChartData }
-                              clusterId={ queryParams.cluster_id }
+                              clusterId={ queryParams.clusterId }
+                              templateId={ queryParams.templateId }
+                              orgId={ queryParams.orgId }
                           />
                       ) }
                   </CardBody>

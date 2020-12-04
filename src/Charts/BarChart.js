@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /*eslint camelcase: ["error", {allow: ["created_date", "successful_count", "failed_count", "start_date", "end_date", "quick_date_range"]}]*/
 
 import React, { Component } from 'react';
@@ -29,11 +30,14 @@ class BarChart extends Component {
     redirectToJobExplorer({ data: { DATE: date }}) {
         const { jobExplorer } = Paths;
         const formattedDate = formatDate(date);
+        const { orgId, templateId } = this.props;
         const initialQueryParams = {
             start_date: formattedDate,
             end_date: formattedDate,
             quick_date_range: 'custom',
-            status: [ 'failed', 'successful' ]
+            status: [ 'failed', 'successful' ],
+            templateId,
+            orgId
         };
         const search = stringify(initialQueryParams, { arrayFormat: 'bracket' });
         this.props.history.push({
@@ -222,6 +226,8 @@ class BarChart extends Component {
 
 BarChart.propTypes = {
     id: PropTypes.string,
+    templateId: PropTypes.array,
+    orgId: PropTypes.array,
     data: PropTypes.array,
     margin: PropTypes.object,
     getHeight: PropTypes.func,
