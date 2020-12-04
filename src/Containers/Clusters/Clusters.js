@@ -51,7 +51,8 @@ const initialTopWorkflowParams = {
 
 const initialModuleParams = {
     groupBy: 'module',
-    sortBy: 'host_task_count:desc'
+    sortBy: 'host_task_count:desc',
+    limit: 10
 };
 
 const Clusters = ({ history }) => {
@@ -258,6 +259,7 @@ const Clusters = ({ history }) => {
                       templates={ workflowData }
                       isLoading={ isLoading }
                       title={ 'Top workflows' }
+                      jobType={ 'workflowjob' }
                   />
                   <TemplatesList
                       history={ history }
@@ -267,6 +269,7 @@ const Clusters = ({ history }) => {
                       templates={ templatesData }
                       isLoading={ isLoading }
                       title={ 'Top templates' }
+                      jobType={ 'job' }
                   />
                   <ModulesList
                       modules={ modulesData }

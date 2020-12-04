@@ -112,7 +112,7 @@ const formatTopFailedTask = data => {
 const formatSuccessRate = (successCount, totalCount) => Math.ceil(successCount / totalCount * 100) + '%';
 const formatAvgRun = (elapsed, totalCount) => new Date(Math.ceil(elapsed / totalCount) * 1000).toISOString().substr(11, 8);
 const formatTotalTime = elapsed => new Date(elapsed * 1000).toISOString().substr(11, 8);
-const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, qp, title }) => {
+const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, qp, title, jobType }) => {
     const [ isModalOpen, setIsModalOpen ] = useState(false);
     const [ selectedId, setSelectedId ] = useState(null);
     const [ selectedTemplate, setSelectedTemplate ] = useState([]);
@@ -142,7 +142,7 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, 
         limit: 5,
         sortBy: 'created:asc',
         quickDateRange: qp.quick_date_range ? qp.quick_date_range : 'last_30_days',
-        jobType: [ 'job' ]
+        jobType: [ jobType ]
     };
 
     const agreggateTemplateParams = {
@@ -158,7 +158,7 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, 
         ],
         status: qp.status,
         quickDateRange: qp.quick_date_range ? qp.quick_date_range : 'last_30_days',
-        jobType: [ 'job' ]
+        jobType: [ jobType ]
     };
 
     useEffect(() => {
