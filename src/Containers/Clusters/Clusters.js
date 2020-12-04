@@ -83,12 +83,13 @@ const Clusters = ({ history }) => {
         initialOptionsParams
     );
 
-    const { clusterId, orgId, templateId } = queryParams;
+    const { clusterId, orgId, templateId, quickDateRange } = queryParams;
 
     const topTemplatesParams = {
         clusterId,
         orgId,
         templateId,
+        quickDateRange,
         ...initialTopTemplateParams
     };
 
@@ -96,6 +97,7 @@ const Clusters = ({ history }) => {
         clusterId,
         orgId,
         templateId,
+        quickDateRange,
         ...initialTopWorkflowParams
     };
 
@@ -103,6 +105,7 @@ const Clusters = ({ history }) => {
         clusterId,
         orgId,
         templateId,
+        quickDateRange,
         ...initialModuleParams
     };
 
