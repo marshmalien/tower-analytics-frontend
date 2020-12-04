@@ -62,6 +62,7 @@ const Clusters = ({ history }) => {
     const [ workflowData, setWorkflowsData ] = useState([]);
     const [ modulesData, setModulesData ] = useState([]);
     const [ isLoading, setIsLoading ] = useState(true);
+    const [ firstRender, setFirstRender ] = useState(true);
 
     const [ orgIds, setOrgIds ] = useState([]);
     const [ clusterIds, setClusterIds ] = useState([]);
@@ -157,7 +158,7 @@ const Clusters = ({ history }) => {
                         setJobTypes(job_type);
                         setQuickDateRanges(quick_date_range);
                         setIsLoading(false);
-
+                        setFirstRender(false);
                     }
                 }
             );
@@ -170,6 +171,10 @@ const Clusters = ({ history }) => {
 
     // Get and update the data
     useEffect(() => {
+        if (firstRender) {
+            return;
+        }
+
         const update = () => {
             readJobExplorer({ params: urlMappedQueryParams(queryParams) }).then(({ items: chartData }) => {
                 queryParams.clusterId.length > 0 ? setLineChartData(chartData) : setBarChartData(chartData);
