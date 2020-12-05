@@ -109,6 +109,19 @@ const formatTopFailedTask = data => {
     return `Unavailable`;
 };
 
+const formatTopFailedStep = data => {
+    if (!data) {
+        return;
+    }
+
+    if (data && data[0]) {
+        const percentage = Math.ceil(data[0].failed_count / data[0].total_failed_count * 100);
+        return `${data[0].template_name} ${percentage}%`;
+    }
+
+    return `Unavailable`;
+};
+
 const formatSuccessRate = (successCount, totalCount) => Math.ceil(successCount / totalCount * 100) + '%';
 const formatAvgRun = (elapsed, totalCount) => new Date(Math.ceil(elapsed / totalCount) * 1000).toISOString().substr(11, 8);
 const formatTotalTime = elapsed => new Date(elapsed * 1000).toISOString().substr(11, 8);
@@ -135,8 +148,7 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, 
             'elapsed',
             'created',
             'cluster_name',
-            'org_name',
-            'most_failed_tasks'
+            'org_name'
         ],
         groupByTime: false,
         limit: 5,
@@ -151,10 +163,11 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, 
         attributes: [
             'elapsed',
             'job_type',
-            'most_failed_tasks',
             'successful_count',
             'failed_count',
-            'total_count'
+            'total_count',
+            'most_failed_tasks',
+            'most_failed_steps'
         ],
         status: qp.status,
         quickDateRange: qp.quick_date_range ? qp.quick_date_range : 'last_30_days',
@@ -306,11 +319,22 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, 
                               { !isNaN(stats.successful_count) ?
                                   formatSuccessRate(stats.successful_count, stats.total_count) : 'Unavailable' }
                           </div>
-                          <div aria-labelledby="most failed task">
-                              <b style={ { marginRight: '10px' } }>Most failed task</b>
-                              { stats.most_failed_tasks ?
-                                  formatTopFailedTask(stats.most_failed_tasks) : 'Unavailable' }
-                          </div>
+                          { stats.most_failed_tasks && (
+                              <div aria-labelledby="most failed task">
+                                  <b style={ { marginRight: '10px' } }>Most failed task</b>
+                                  { stats.most_failed_tasks ?
+                                      formatTopFailedTask(stats.most_failed_tasks) : 'Unavailable' }
+                              </div>
+
+                          ) }
+                          { stats.most_failed_steps && (
+
+                              <div aria-labelledby="most failed step">
+                                  <b style={ { marginRight: '10px' } }>Most failed step</b>
+                                  { stats.most_failed_steps ?
+                                      formatTopFailedStep(stats.most_failed_steps) : 'Unavailable' }
+                              </div>
+                          ) }
                       </DataListFocus>
                   </PFDataListItemNoBorder>
                   <DataListItemCompact>
