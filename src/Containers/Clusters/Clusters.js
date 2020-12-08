@@ -33,6 +33,8 @@ import LineChart from '../../Charts/LineChart';
 import ModulesList from '../../Components/ModulesList';
 import TemplatesList from '../../Components/TemplatesList';
 import FilterableToolbar from '../../Components/Toolbar';
+import ApiErrorState from '../../Components/ApiErrorState';
+
 import { clusters } from '../../Utilities/constants';
 
 const initialTopTemplateParams = {
@@ -57,6 +59,7 @@ const initialModuleParams = {
 
 const Clusters = ({ history }) => {
     const [ preflightError, setPreFlightError ] = useState(null);
+    const [ apiError, setApiError ] = useState(null);
     const [ barChartData, setBarChartData ] = useState([]);
     const [ lineChartData, setLineChartData ] = useState([]);
     const [ templatesData, setTemplatesData ] = useState([]);
@@ -112,6 +115,10 @@ const Clusters = ({ history }) => {
     };
 
     useEffect(() => {
+        if (!firstRender) {
+            return;
+        }
+
         let ignore = false;
 
         const fetchEndpoints = () => {
@@ -161,8 +168,8 @@ const Clusters = ({ history }) => {
                         setIsLoading(false);
                         setFirstRender(false);
                     }
-                }
-            );
+                })
+            .catch(e => setApiError(e.error));
         }
 
         initializeWithPreflight();
@@ -176,23 +183,44 @@ const Clusters = ({ history }) => {
             return;
         }
 
-        const update = () => {
-            readJobExplorer({ params: urlMappedQueryParams(queryParams) }).then(({ items: chartData }) => {
+        let ignore = false;
+
+        const fetchEndpoints = async () => {
+            await window.insights.chrome.auth.getUser();
+            readJobExplorer({ params: urlMappedQueryParams(queryParams) })
+            .then(({ items: chartData }) => {
                 queryParams.clusterId.length > 0 ? setLineChartData(chartData) : setBarChartData(chartData);
-            });
-            readJobExplorer({ params: urlMappedQueryParams(topTemplatesParams) }).then(({ items: templatesData }) => {
+            })
+            .catch(e => setApiError(e.error));
+
+            readJobExplorer({ params: urlMappedQueryParams(topTemplatesParams) })
+            .then(({ items: templatesData }) => {
                 setTemplatesData(templatesData);
-            });
-            readJobExplorer({ params: urlMappedQueryParams(topWorkflowParams) }).then(({ items: workflowData }) => {
+            })
+            .catch(e => setApiError(e.error));
+
+            readJobExplorer({ params: urlMappedQueryParams(topWorkflowParams) })
+            .then(({ items: workflowData }) => {
                 setWorkflowsData(workflowData);
-            });
+            })
+            .catch(e => setApiError(e.error));
+
             readEventExplorer({ params: urlMappedQueryParams(topModuleParams) }).then(({ items: modulesData }) => {
                 setModulesData(modulesData);
-            });
+            })
+            .catch(e => setApiError(e.error));
         };
 
-        setIsLoading(true);
-        new Promise(update).finally(setIsLoading(false));
+        const update = async () => {
+            if (!ignore) {
+                setIsLoading(true);
+                await fetchEndpoints();
+                setIsLoading(false);
+            }
+        };
+
+        update();
+        return () => (ignore = true);
     }, [ queryParams ]);
 
     return (
@@ -217,7 +245,12 @@ const Clusters = ({ history }) => {
                     <EmptyState { ...preflightError } />
                 </Main>
             ) }
-            { !preflightError && (
+            { apiError && (
+                <Main>
+                    <ApiErrorState message={ apiError } />
+                </Main>
+            ) }
+            { !preflightError && !apiError && (
         <>
           <Main>
               <Card>
@@ -227,8 +260,7 @@ const Clusters = ({ history }) => {
                   <CardBody>
                       { isLoading && !preflightError && <LoadingState /> }
                       { queryParams.clusterId.length <= 0 &&
-                  barChartData.length > 0 &&
-                  !isLoading && (
+                                    !isLoading && !apiError && (
                           <BarChart
                               margin={ { top: 20, right: 20, bottom: 50, left: 70 } }
                               id="d3-bar-chart-root"
@@ -238,8 +270,7 @@ const Clusters = ({ history }) => {
                           />
                       ) }
                       { queryParams.clusterId.length > 0  &&
-                  lineChartData.length > 0 &&
-                  !isLoading && (
+                                    !isLoading && !apiError && (
                           <LineChart
                               margin={ { top: 20, right: 20, bottom: 50, left: 70 } }
                               id="d3-line-chart-root"
