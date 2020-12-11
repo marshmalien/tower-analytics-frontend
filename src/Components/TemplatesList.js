@@ -175,14 +175,20 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, 
     };
 
     useEffect(() => {
+        let ignore = false;
+
         const update = async () => {
             await window.insights.chrome.auth.getUser();
             readJobExplorer({ params: urlMappedQueryParams(agreggateTemplateParams) }).then(({ items: stats }) => {
-                setStats(stats[0]);
+                if (!ignore) {
+                    setStats(stats[0]);
+                }
             });
             // template jobs list
-            readJobExplorer({ params: urlMappedQueryParams(relatedTemplateJobsParams) }).then(({ items: fooBar }) => {
-                setRelatedJobs(fooBar);
+            readJobExplorer({ params: urlMappedQueryParams(relatedTemplateJobsParams) }).then(({ items: relatedJobs }) => {
+                if (!ignore) {
+                    setRelatedJobs(relatedJobs);
+                }
             });
         };
 
@@ -190,6 +196,7 @@ const TemplatesList = ({ history, clusterId, templates, isLoading, queryParams, 
             update();
         }
 
+        return () => (ignore = true);
     }, [ selectedId ]);
 
     const redirectToJobExplorer = () => {
